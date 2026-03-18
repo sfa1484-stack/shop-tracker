@@ -57,6 +57,13 @@
   .box-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8;margin-bottom:10px}
   .box-lbl-green{color:#4ade80}
 
+  /* DATE PICKER */
+  .date-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 12px}
+  .date-icon{font-size:15px;flex-shrink:0}
+  .date-label{font-size:11px;color:#94a3b8;flex-shrink:0}
+  .inp-date{flex:1;background:transparent;border:none;color:#f1f5f9;font-family:Georgia,serif;font-size:13px;cursor:pointer;min-width:0}
+  .inp-date::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.6;cursor:pointer}
+
   .input-row{display:flex;gap:8px;margin-bottom:10px}
   .inp-wrap{flex:1;position:relative}
   .inp-prefix{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px}
@@ -99,7 +106,6 @@
   .chip{border-radius:7px;padding:2px 7px;font-size:10px}
   .empty{text-align:center;padding:36px;color:#64748b;font-size:13px}
 
-  /* Install banner */
   #installBanner{display:none;background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.4);border-radius:14px;padding:14px 16px;margin-top:16px;align-items:center;gap:12px}
   #installBanner.show{display:flex}
   .install-text{flex:1;font-size:12px;color:#d1fae5;line-height:1.5}
@@ -124,7 +130,6 @@
 
 <div class="wrap">
 
-  <!-- Install Banner -->
   <div id="installBanner">
     <div class="install-text">
       <strong>📲 Add to Home Screen</strong>
@@ -133,7 +138,6 @@
     <button class="btn-install" id="installBtn">Install</button>
   </div>
 
-  <!-- SHOP TABS -->
   <div class="shop-tabs">
     <div class="shop-tab shop-tab-1 active" id="shopBtn1" onclick="selectShop(1)">🏪 Rashan Bazar</div>
     <div class="shop-tab shop-tab-2 inactive" id="shopBtn2" onclick="selectShop(2)">🏪 Top Store</div>
@@ -152,12 +156,17 @@
       </div>
     </div>
     <div class="inner-tabs">
-      <button class="inner-tab active" id="s1tabToday" onclick="setInnerTab(1,'today')">📊 Today</button>
+      <button class="inner-tab active" id="s1tabToday" onclick="setInnerTab(1,'today')">📊 Log Sales</button>
       <button class="inner-tab inactive" id="s1tabHistory" onclick="setInnerTab(1,'history')">📅 History</button>
     </div>
     <div id="s1today">
       <div class="box">
-        <div class="box-lbl" id="s1entryLbl">Log Today's Sales</div>
+        <div class="box-lbl" id="s1entryLbl">Select Date & Enter Sales</div>
+        <div class="date-row">
+          <span class="date-icon">📅</span>
+          <span class="date-label">Date:</span>
+          <input class="inp-date" type="date" id="s1date"/>
+        </div>
         <div class="input-row">
           <div class="inp-wrap">
             <span class="inp-prefix">₨</span>
@@ -172,7 +181,7 @@
         <div id="s1previewRows"></div>
       </div>
       <div class="box box-green" id="s1breakdown" style="display:none">
-        <div class="box-lbl box-lbl-green">Today's Breakdown — Rashan Bazar</div>
+        <div class="box-lbl box-lbl-green" id="s1breakLbl">Breakdown — Rashan Bazar</div>
         <div class="breakdown-sales" id="s1breakSales"></div>
         <div id="s1breakRows"></div>
       </div>
@@ -196,12 +205,17 @@
       </div>
     </div>
     <div class="inner-tabs">
-      <button class="inner-tab active" id="s2tabToday" onclick="setInnerTab(2,'today')">📊 Today</button>
+      <button class="inner-tab active" id="s2tabToday" onclick="setInnerTab(2,'today')">📊 Log Sales</button>
       <button class="inner-tab inactive" id="s2tabHistory" onclick="setInnerTab(2,'history')">📅 History</button>
     </div>
     <div id="s2today">
       <div class="box">
-        <div class="box-lbl" id="s2entryLbl">Log Today's Sales</div>
+        <div class="box-lbl" id="s2entryLbl">Select Date & Enter Sales</div>
+        <div class="date-row">
+          <span class="date-icon">📅</span>
+          <span class="date-label">Date:</span>
+          <input class="inp-date" type="date" id="s2date"/>
+        </div>
         <div class="input-row">
           <div class="inp-wrap">
             <span class="inp-prefix">₨</span>
@@ -216,7 +230,7 @@
         <div id="s2previewRows"></div>
       </div>
       <div class="box box-green" id="s2breakdown" style="display:none">
-        <div class="box-lbl box-lbl-green">Today's Breakdown — Top Store</div>
+        <div class="box-lbl box-lbl-green" id="s2breakLbl">Breakdown — Top Store</div>
         <div class="breakdown-sales" id="s2breakSales"></div>
         <div id="s2breakRows"></div>
       </div>
@@ -230,37 +244,30 @@
 </div>
 
 <script>
-// ── PWA Install ──────────────────────────────────────────
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  });
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
 }
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
   document.getElementById('installBanner').classList.add('show');
 });
-document.getElementById('installBtn').addEventListener('click', async () => {
+document.getElementById('installBtn').addEventListener('click',async()=>{
   if(!deferredPrompt) return;
   deferredPrompt.prompt();
-  const {outcome} = await deferredPrompt.userChoice;
-  deferredPrompt = null;
+  await deferredPrompt.userChoice;
+  deferredPrompt=null;
   document.getElementById('installBanner').classList.remove('show');
 });
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBanner').classList.remove('show');
-});
+window.addEventListener('appinstalled',()=>{ document.getElementById('installBanner').classList.remove('show'); });
 
-// ── App Logic ────────────────────────────────────────────
-const SPLITS = [
+const SPLITS=[
   {key:"stock",    label:"Stock",          pct:.87, color:"#2563eb"},
   {key:"expenses", label:"Expenses",       pct:.05, color:"#d97706"},
   {key:"personal", label:"Personal",       pct:.05, color:"#9333ea"},
   {key:"buffer",   label:"Buffer Savings", pct:.03, color:"#16a34a"},
 ];
-const NAMES = {1:"Rashan Bazar", 2:"Top Store"};
+const NAMES={1:"Rashan Bazar",2:"Top Store"};
 
 function fmt(n){return "₨ "+Math.round(n).toLocaleString("en-PK")}
 function todayStr(){return new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Karachi"})}
@@ -269,62 +276,78 @@ function dayLabel(d){return new Date(d+"T00:00:00").toLocaleDateString("en-PK",{
 function load(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch{return def}}
 function saveLs(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
 
-let data = {1:load("rb-entries",[]), 2:load("ts-entries",[])};
+let data={1:load("rb-entries",[]),2:load("ts-entries",[])};
+
+// Set date pickers to today on load
+function initDates(){
+  const t=todayStr();
+  document.getElementById("s1date").value=t;
+  document.getElementById("s2date").value=t;
+}
+
+// When date changes, show existing entry if any
+function onDateChange(shop){
+  const p="s"+shop;
+  const date=document.getElementById(p+"date").value;
+  const existing=data[shop].find(e=>e.date===date);
+  document.getElementById(p+"sales").value="";
+  document.getElementById(p+"note").value="";
+  document.getElementById(p+"preview").style.display="none";
+  if(existing){
+    document.getElementById(p+"entryLbl").textContent="✅ Entry exists — Update?";
+    document.getElementById(p+"breakdown").style.display="block";
+    document.getElementById(p+"breakLbl").textContent="Breakdown — "+dayLabel(date);
+    document.getElementById(p+"breakSales").innerHTML=fmt(existing.sales)+' <span style="font-size:11px;color:#94a3b8">total sales</span>';
+    document.getElementById(p+"breakRows").innerHTML=SPLITS.map(s=>`
+      <div class="breakdown-row">
+        <span class="breakdown-lbl">${s.label} (${Math.round(s.pct*100)}%)</span>
+        <span style="color:${s.color};font-weight:bold;font-size:13px">${fmt(existing[s.key])}</span>
+      </div>`).join("");
+  } else {
+    document.getElementById(p+"entryLbl").textContent="Select Date & Enter Sales";
+    document.getElementById(p+"breakdown").style.display="none";
+  }
+}
+
+document.getElementById("s1date").addEventListener("change",()=>onDateChange(1));
+document.getElementById("s2date").addEventListener("change",()=>onDateChange(2));
 
 function selectShop(n){
-  document.getElementById("pane1").style.display = n===1?"block":"none";
-  document.getElementById("pane2").style.display = n===2?"block":"none";
-  document.getElementById("shopBtn1").className = "shop-tab shop-tab-1 "+(n===1?"active":"inactive");
-  document.getElementById("shopBtn2").className = "shop-tab shop-tab-2 "+(n===2?"active":"inactive");
+  document.getElementById("pane1").style.display=n===1?"block":"none";
+  document.getElementById("pane2").style.display=n===2?"block":"none";
+  document.getElementById("shopBtn1").className="shop-tab shop-tab-1 "+(n===1?"active":"inactive");
+  document.getElementById("shopBtn2").className="shop-tab shop-tab-2 "+(n===2?"active":"inactive");
 }
 
 function setInnerTab(shop,tab){
   const p="s"+shop;
-  document.getElementById(p+"today").style.display   = tab==="today"  ?"block":"none";
-  document.getElementById(p+"history").style.display = tab==="history"?"block":"none";
-  document.getElementById(p+"tabToday").className   = "inner-tab "+(tab==="today"  ?"active":"inactive");
-  document.getElementById(p+"tabHistory").className = "inner-tab "+(tab==="history"?"active":"inactive");
+  document.getElementById(p+"today").style.display   =tab==="today"  ?"block":"none";
+  document.getElementById(p+"history").style.display =tab==="history"?"block":"none";
+  document.getElementById(p+"tabToday").className   ="inner-tab "+(tab==="today"  ?"active":"inactive");
+  document.getElementById(p+"tabHistory").className ="inner-tab "+(tab==="history"?"active":"inactive");
   if(tab==="history") renderHistory(shop);
 }
 
 function renderBuffer(shop){
   const p="s"+shop;
   const entries=data[shop];
-  const allTime  = entries.reduce((s,e)=>s+(e.buffer||0),0);
-  const monthBuf = entries.filter(e=>e.date.startsWith(thisMonthStr())).reduce((s,e)=>s+(e.buffer||0),0);
-  const avgDaily = entries.length>0?entries.slice(0,30).reduce((s,e)=>s+(e.buffer||0),0)/Math.min(entries.length,30):0;
-  const maxRef   = Math.max(allTime,1000);
-  document.getElementById(p+"bufAmt").textContent   = fmt(allTime);
-  document.getElementById(p+"bufAll").textContent   = fmt(allTime);
-  document.getElementById(p+"bufMonth").textContent = fmt(monthBuf);
-  document.getElementById(p+"bufBar").style.width   = Math.min((allTime/maxRef)*100,100)+"%";
-  document.getElementById(p+"bufDays").textContent  = entries.length===0
-    ? "Start logging to track buffer savings"
-    : `${entries.length} day${entries.length>1?"s":""} tracked • Avg ₨${Math.round(avgDaily).toLocaleString("en-PK")}/day saved`;
-}
-
-function renderToday(shop){
-  const p="s"+shop;
-  const te=data[shop].find(e=>e.date===todayStr());
-  document.getElementById(p+"entryLbl").textContent = te?"✅ Today Logged — Update?":"Log Today's Sales";
-  const si=document.getElementById(p+"sales").value;
-  if(te&&!si){
-    document.getElementById(p+"breakdown").style.display="block";
-    document.getElementById(p+"breakSales").innerHTML=fmt(te.sales)+' <span style="font-size:11px;color:#94a3b8">total sales</span>';
-    document.getElementById(p+"breakRows").innerHTML=SPLITS.map(s=>`
-      <div class="breakdown-row">
-        <span class="breakdown-lbl">${s.label} (${Math.round(s.pct*100)}%)</span>
-        <span style="color:${s.color};font-weight:bold;font-size:13px">${fmt(te[s.key])}</span>
-      </div>`).join("");
-  } else {
-    document.getElementById(p+"breakdown").style.display="none";
-  }
+  const allTime =entries.reduce((s,e)=>s+(e.buffer||0),0);
+  const monthBuf=entries.filter(e=>e.date.startsWith(thisMonthStr())).reduce((s,e)=>s+(e.buffer||0),0);
+  const avgDaily=entries.length>0?entries.slice(0,30).reduce((s,e)=>s+(e.buffer||0),0)/Math.min(entries.length,30):0;
+  const maxRef  =Math.max(allTime,1000);
+  document.getElementById(p+"bufAmt").textContent  =fmt(allTime);
+  document.getElementById(p+"bufAll").textContent  =fmt(allTime);
+  document.getElementById(p+"bufMonth").textContent=fmt(monthBuf);
+  document.getElementById(p+"bufBar").style.width  =Math.min((allTime/maxRef)*100,100)+"%";
+  document.getElementById(p+"bufDays").textContent =entries.length===0
+    ?"Start logging to track buffer savings"
+    :`${entries.length} day${entries.length>1?"s":""} tracked • Avg ₨${Math.round(avgDaily).toLocaleString("en-PK")}/day saved`;
 }
 
 function renderAll(){
   document.getElementById("todayLabel").textContent=dayLabel(todayStr());
-  renderBuffer(1);renderToday(1);
-  renderBuffer(2);renderToday(2);
+  renderBuffer(1); renderBuffer(2);
+  onDateChange(1); onDateChange(2);
 }
 
 function updatePreview(shop){
@@ -353,25 +376,27 @@ function saveEntry(shop){
   const p="s"+shop;
   const sales=parseFloat(document.getElementById(p+"sales").value);
   if(!sales||sales<=0) return;
+  const date=document.getElementById(p+"date").value||todayStr();
   const note=document.getElementById(p+"note").value;
-  const entry={date:todayStr(),sales,note};
+  const entry={date,sales,note};
   SPLITS.forEach(s=>{entry[s.key]=sales*s.pct;});
-  data[shop]=data[shop].filter(e=>e.date!==todayStr()).concat(entry).sort((a,b)=>b.date.localeCompare(a.date));
+  data[shop]=data[shop].filter(e=>e.date!==date).concat(entry).sort((a,b)=>b.date.localeCompare(a.date));
   saveLs(shop===1?"rb-entries":"ts-entries",data[shop]);
   document.getElementById(p+"sales").value="";
   document.getElementById(p+"note").value="";
   document.getElementById(p+"preview").style.display="none";
   const btn=document.getElementById(p+"saveBtn");
-  const orig="Save "+NAMES[shop]+" Entry";
   btn.textContent="✅ Saved!";
-  setTimeout(()=>{btn.textContent=orig;},2000);
-  renderAll();
+  setTimeout(()=>{btn.textContent="Save "+NAMES[shop]+" Entry";},2000);
+  renderBuffer(shop);
+  onDateChange(shop);
 }
 
 function deleteEntry(shop,date){
   data[shop]=data[shop].filter(e=>e.date!==date);
   saveLs(shop===1?"rb-entries":"ts-entries",data[shop]);
-  renderAll();
+  renderBuffer(shop);
+  onDateChange(shop);
   renderHistory(shop);
 }
 
@@ -403,6 +428,7 @@ function renderHistory(shop){
     </div>`).join("");
 }
 
+initDates();
 renderAll();
 </script>
 </body>
