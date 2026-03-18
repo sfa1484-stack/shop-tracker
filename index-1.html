@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Shop Tracker"/>
+<meta name="theme-color" content="#16a34a"/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="./icon-192.png"/>
+<title>My Shop Tracker</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f2027 100%);font-family:Georgia,serif;color:#f1f5f9;padding-bottom:80px;overscroll-behavior:none}
+  input{outline:none;-webkit-appearance:none}
+
+  .header{background:linear-gradient(90deg,#16a34a,#15803d);padding:18px 20px 14px;padding-top:calc(18px + env(safe-area-inset-top));box-shadow:0 4px 24px rgba(22,163,74,0.3)}
+  .header-inner{max-width:520px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start}
+  .header-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:.8;margin-bottom:3px}
+  .header-title{font-size:22px;font-weight:bold;letter-spacing:1px}
+  .header-date{text-align:right;font-size:12px;font-weight:bold}
+  .header-date-sub{font-size:10px;opacity:.7;margin-bottom:2px}
+
+  .wrap{max-width:520px;margin:0 auto;padding:0 14px}
+
+  .shop-tabs{display:flex;gap:10px;margin-top:18px}
+  .shop-tab{flex:1;padding:12px 0;border-radius:12px;border:2px solid transparent;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-weight:bold;text-align:center;transition:all .2s;user-select:none}
+  .shop-tab-1.active{background:rgba(37,99,235,.2);border-color:#2563eb;color:#60a5fa}
+  .shop-tab-1.inactive{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#64748b}
+  .shop-tab-2.active{background:rgba(217,119,6,.2);border-color:#d97706;color:#fbbf24}
+  .shop-tab-2.inactive{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#64748b}
+
+  .buf-card-1{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.3);border-radius:14px;padding:14px 16px;margin-top:14px}
+  .buf-card-2{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.3);border-radius:14px;padding:14px 16px;margin-top:14px}
+  .buf-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+  .buf-title-1{color:#60a5fa}
+  .buf-title-2{color:#fbbf24}
+  .buf-amount{font-size:26px;font-weight:bold;margin-bottom:2px}
+  .buf-amount-1{color:#93c5fd}
+  .buf-amount-2{color:#fcd34d}
+  .buf-sub{font-size:11px;color:#94a3b8;margin-bottom:10px}
+  .bar-bg{background:rgba(255,255,255,.1);border-radius:99px;height:6px}
+  .bar-1{background:linear-gradient(90deg,#1d4ed8,#60a5fa);border-radius:99px;height:6px;transition:width .6s ease}
+  .bar-2{background:linear-gradient(90deg,#b45309,#fbbf24);border-radius:99px;height:6px;transition:width .6s ease}
+  .buf-stats{display:flex;gap:16px;margin-top:8px}
+  .buf-stat{font-size:11px;color:#94a3b8}
+  .buf-stat span{font-weight:bold;color:#f1f5f9}
+
+  .inner-tabs{display:flex;background:rgba(255,255,255,.05);border-radius:10px;padding:3px;margin-top:14px}
+  .inner-tab{flex:1;padding:8px 0;border-radius:8px;border:none;cursor:pointer;font-family:Georgia,serif;font-size:12px;transition:all .2s}
+  .inner-tab.active{background:rgba(255,255,255,.12);color:#fff;font-weight:bold}
+  .inner-tab.inactive{background:transparent;color:#64748b}
+
+  .box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-top:12px}
+  .box-green{background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.3)}
+  .box-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8;margin-bottom:10px}
+  .box-lbl-green{color:#4ade80}
+
+  /* DATE PICKER */
+  .date-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 12px}
+  .date-icon{font-size:15px;flex-shrink:0}
+  .date-label{font-size:11px;color:#94a3b8;flex-shrink:0}
+  .inp-date{flex:1;background:transparent;border:none;color:#f1f5f9;font-family:Georgia,serif;font-size:13px;cursor:pointer;min-width:0}
+  .inp-date::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.6;cursor:pointer}
+
+  .input-row{display:flex;gap:8px;margin-bottom:10px}
+  .inp-wrap{flex:1;position:relative}
+  .inp-prefix{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px}
+  .inp{width:100%;padding:12px 10px 12px 26px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;font-family:Georgia,serif;font-size:16px}
+  .inp-note{flex:1;padding:12px 10px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;font-family:Georgia,serif;font-size:12px}
+  .btn-save{width:100%;padding:13px 0;border-radius:10px;border:none;color:#fff;font-family:Georgia,serif;font-size:14px;font-weight:bold;cursor:pointer;transition:all .3s}
+  .btn-s1{background:linear-gradient(90deg,#1d4ed8,#2563eb);box-shadow:0 4px 14px rgba(37,99,235,.3)}
+  .btn-s2{background:linear-gradient(90deg,#b45309,#d97706);box-shadow:0 4px 14px rgba(217,119,6,.3)}
+
+  .split-preview{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-top:12px}
+  .split-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-bottom:12px}
+  .split-row{display:flex;align-items:center;margin-bottom:10px}
+  .split-dot{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0}
+  .split-inner{width:9px;height:9px;border-radius:50%}
+  .split-info{flex:1}
+  .split-top{display:flex;justify-content:space-between;margin-bottom:3px}
+  .split-name{font-size:12px;color:#e2e8f0}
+  .split-pct-tag{color:#64748b;font-size:10px}
+  .split-amt{font-size:13px;font-weight:bold}
+  .mini-bar-bg{background:rgba(255,255,255,.07);border-radius:99px;height:3px}
+  .mini-bar{border-radius:99px;height:3px;opacity:.8}
+
+  .breakdown-sales{font-size:20px;font-weight:bold;margin-bottom:12px}
+  .breakdown-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .breakdown-lbl{color:#94a3b8;font-size:12px}
+
+  .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .summary-card{background:rgba(255,255,255,.05);border-radius:10px;padding:9px 11px;border:1px solid rgba(255,255,255,.07)}
+  .summary-lbl{font-size:9px;color:#64748b;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px}
+  .summary-val{font-size:13px;font-weight:bold}
+  .h-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;margin-bottom:9px}
+  .h-card.today{border-color:rgba(22,163,74,.4)}
+  .h-head{display:flex;justify-content:space-between;align-items:flex-start}
+  .h-date{font-size:11px;color:#64748b;margin-bottom:2px}
+  .h-today{color:#4ade80;font-size:10px}
+  .h-sales{font-size:18px;font-weight:bold}
+  .h-note{font-size:10px;color:#94a3b8;margin-top:2px}
+  .btn-del{background:rgba(239,68,68,.15);border:none;border-radius:7px;color:#f87171;font-size:10px;padding:3px 7px;cursor:pointer}
+  .chips{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+  .chip{border-radius:7px;padding:2px 7px;font-size:10px}
+  .empty{text-align:center;padding:36px;color:#64748b;font-size:13px}
+
+  #installBanner{display:none;background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.4);border-radius:14px;padding:14px 16px;margin-top:16px;align-items:center;gap:12px}
+  #installBanner.show{display:flex}
+  .install-text{flex:1;font-size:12px;color:#d1fae5;line-height:1.5}
+  .install-text strong{color:#4ade80;display:block;margin-bottom:2px}
+  .btn-install{padding:9px 14px;border-radius:9px;border:none;background:#16a34a;color:#fff;font-family:Georgia,serif;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-label">Daily Tracker</div>
+      <div class="header-title">My Shops 🏪</div>
+    </div>
+    <div class="header-date">
+      <div class="header-date-sub">Today</div>
+      <div id="todayLabel"></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div id="installBanner">
+    <div class="install-text">
+      <strong>📲 Add to Home Screen</strong>
+      Install this app for quick daily access
+    </div>
+    <button class="btn-install" id="installBtn">Install</button>
+  </div>
+
+  <div class="shop-tabs">
+    <div class="shop-tab shop-tab-1 active" id="shopBtn1" onclick="selectShop(1)">🏪 Rashan Bazar</div>
+    <div class="shop-tab shop-tab-2 inactive" id="shopBtn2" onclick="selectShop(2)">🏪 Top Store</div>
+  </div>
+
+  <!-- RASHAN BAZAR -->
+  <div id="pane1">
+    <div class="buf-card-1">
+      <div class="buf-title buf-title-1">Buffer Savings — Rashan Bazar</div>
+      <div class="buf-amount buf-amount-1" id="s1bufAmt">₨ 0</div>
+      <div class="buf-sub" id="s1bufDays">No entries yet</div>
+      <div class="bar-bg"><div class="bar-1" id="s1bufBar" style="width:0%"></div></div>
+      <div class="buf-stats">
+        <div class="buf-stat">This Month: <span id="s1bufMonth">₨ 0</span></div>
+        <div class="buf-stat">All Time: <span id="s1bufAll">₨ 0</span></div>
+      </div>
+    </div>
+    <div class="inner-tabs">
+      <button class="inner-tab active" id="s1tabToday" onclick="setInnerTab(1,'today')">📊 Log Sales</button>
+      <button class="inner-tab inactive" id="s1tabHistory" onclick="setInnerTab(1,'history')">📅 History</button>
+    </div>
+    <div id="s1today">
+      <div class="box">
+        <div class="box-lbl" id="s1entryLbl">Select Date & Enter Sales</div>
+        <div class="date-row">
+          <span class="date-icon">📅</span>
+          <span class="date-label">Date:</span>
+          <input class="inp-date" type="date" id="s1date"/>
+        </div>
+        <div class="input-row">
+          <div class="inp-wrap">
+            <span class="inp-prefix">₨</span>
+            <input class="inp" type="number" inputmode="numeric" id="s1sales" placeholder="Total sales" oninput="updatePreview(1)"/>
+          </div>
+          <input class="inp-note" type="text" id="s1note" placeholder="Note (optional)"/>
+        </div>
+        <button class="btn-save btn-s1" id="s1saveBtn" onclick="saveEntry(1)">Save Rashan Bazar Entry</button>
+      </div>
+      <div class="split-preview" id="s1preview" style="display:none">
+        <div class="split-lbl">Auto Split Preview</div>
+        <div id="s1previewRows"></div>
+      </div>
+      <div class="box box-green" id="s1breakdown" style="display:none">
+        <div class="box-lbl box-lbl-green" id="s1breakLbl">Breakdown — Rashan Bazar</div>
+        <div class="breakdown-sales" id="s1breakSales"></div>
+        <div id="s1breakRows"></div>
+      </div>
+    </div>
+    <div id="s1history" style="display:none;margin-top:12px">
+      <div class="summary-grid" id="s1summaryGrid"></div>
+      <div id="s1historyList"></div>
+    </div>
+  </div>
+
+  <!-- TOP STORE -->
+  <div id="pane2" style="display:none">
+    <div class="buf-card-2">
+      <div class="buf-title buf-title-2">Buffer Savings — Top Store</div>
+      <div class="buf-amount buf-amount-2" id="s2bufAmt">₨ 0</div>
+      <div class="buf-sub" id="s2bufDays">No entries yet</div>
+      <div class="bar-bg"><div class="bar-2" id="s2bufBar" style="width:0%"></div></div>
+      <div class="buf-stats">
+        <div class="buf-stat">This Month: <span id="s2bufMonth">₨ 0</span></div>
+        <div class="buf-stat">All Time: <span id="s2bufAll">₨ 0</span></div>
+      </div>
+    </div>
+    <div class="inner-tabs">
+      <button class="inner-tab active" id="s2tabToday" onclick="setInnerTab(2,'today')">📊 Log Sales</button>
+      <button class="inner-tab inactive" id="s2tabHistory" onclick="setInnerTab(2,'history')">📅 History</button>
+    </div>
+    <div id="s2today">
+      <div class="box">
+        <div class="box-lbl" id="s2entryLbl">Select Date & Enter Sales</div>
+        <div class="date-row">
+          <span class="date-icon">📅</span>
+          <span class="date-label">Date:</span>
+          <input class="inp-date" type="date" id="s2date"/>
+        </div>
+        <div class="input-row">
+          <div class="inp-wrap">
+            <span class="inp-prefix">₨</span>
+            <input class="inp" type="number" inputmode="numeric" id="s2sales" placeholder="Total sales" oninput="updatePreview(2)"/>
+          </div>
+          <input class="inp-note" type="text" id="s2note" placeholder="Note (optional)"/>
+        </div>
+        <button class="btn-save btn-s2" id="s2saveBtn" onclick="saveEntry(2)">Save Top Store Entry</button>
+      </div>
+      <div class="split-preview" id="s2preview" style="display:none">
+        <div class="split-lbl">Auto Split Preview</div>
+        <div id="s2previewRows"></div>
+      </div>
+      <div class="box box-green" id="s2breakdown" style="display:none">
+        <div class="box-lbl box-lbl-green" id="s2breakLbl">Breakdown — Top Store</div>
+        <div class="breakdown-sales" id="s2breakSales"></div>
+        <div id="s2breakRows"></div>
+      </div>
+    </div>
+    <div id="s2history" style="display:none;margin-top:12px">
+      <div class="summary-grid" id="s2summaryGrid"></div>
+      <div id="s2historyList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click',async()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById('installBanner').classList.remove('show');
+});
+window.addEventListener('appinstalled',()=>{ document.getElementById('installBanner').classList.remove('show'); });
+
+const SPLITS=[
+  {key:"stock",    label:"Stock",          pct:.87, color:"#2563eb"},
+  {key:"expenses", label:"Expenses",       pct:.05, color:"#d97706"},
+  {key:"personal", label:"Personal",       pct:.05, color:"#9333ea"},
+  {key:"buffer",   label:"Buffer Savings", pct:.03, color:"#16a34a"},
+];
+const NAMES={1:"Rashan Bazar",2:"Top Store"};
+
+function fmt(n){return "₨ "+Math.round(n).toLocaleString("en-PK")}
+function todayStr(){return new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Karachi"})}
+function thisMonthStr(){return todayStr().slice(0,7)}
+function dayLabel(d){return new Date(d+"T00:00:00").toLocaleDateString("en-PK",{day:"numeric",month:"short",weekday:"short"})}
+function load(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch{return def}}
+function saveLs(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+
+let data={1:load("rb-entries",[]),2:load("ts-entries",[])};
+
+// Set date pickers to today on load
+function initDates(){
+  const t=todayStr();
+  document.getElementById("s1date").value=t;
+  document.getElementById("s2date").value=t;
+}
+
+// When date changes, show existing entry if any
+function onDateChange(shop){
+  const p="s"+shop;
+  const date=document.getElementById(p+"date").value;
+  const existing=data[shop].find(e=>e.date===date);
+  document.getElementById(p+"sales").value="";
+  document.getElementById(p+"note").value="";
+  document.getElementById(p+"preview").style.display="none";
+  if(existing){
+    document.getElementById(p+"entryLbl").textContent="✅ Entry exists — Update?";
+    document.getElementById(p+"breakdown").style.display="block";
+    document.getElementById(p+"breakLbl").textContent="Breakdown — "+dayLabel(date);
+    document.getElementById(p+"breakSales").innerHTML=fmt(existing.sales)+' <span style="font-size:11px;color:#94a3b8">total sales</span>';
+    document.getElementById(p+"breakRows").innerHTML=SPLITS.map(s=>`
+      <div class="breakdown-row">
+        <span class="breakdown-lbl">${s.label} (${Math.round(s.pct*100)}%)</span>
+        <span style="color:${s.color};font-weight:bold;font-size:13px">${fmt(existing[s.key])}</span>
+      </div>`).join("");
+  } else {
+    document.getElementById(p+"entryLbl").textContent="Select Date & Enter Sales";
+    document.getElementById(p+"breakdown").style.display="none";
+  }
+}
+
+document.getElementById("s1date").addEventListener("change",()=>onDateChange(1));
+document.getElementById("s2date").addEventListener("change",()=>onDateChange(2));
+
+function selectShop(n){
+  document.getElementById("pane1").style.display=n===1?"block":"none";
+  document.getElementById("pane2").style.display=n===2?"block":"none";
+  document.getElementById("shopBtn1").className="shop-tab shop-tab-1 "+(n===1?"active":"inactive");
+  document.getElementById("shopBtn2").className="shop-tab shop-tab-2 "+(n===2?"active":"inactive");
+}
+
+function setInnerTab(shop,tab){
+  const p="s"+shop;
+  document.getElementById(p+"today").style.display   =tab==="today"  ?"block":"none";
+  document.getElementById(p+"history").style.display =tab==="history"?"block":"none";
+  document.getElementById(p+"tabToday").className   ="inner-tab "+(tab==="today"  ?"active":"inactive");
+  document.getElementById(p+"tabHistory").className ="inner-tab "+(tab==="history"?"active":"inactive");
+  if(tab==="history") renderHistory(shop);
+}
+
+function renderBuffer(shop){
+  const p="s"+shop;
+  const entries=data[shop];
+  const allTime =entries.reduce((s,e)=>s+(e.buffer||0),0);
+  const monthBuf=entries.filter(e=>e.date.startsWith(thisMonthStr())).reduce((s,e)=>s+(e.buffer||0),0);
+  const avgDaily=entries.length>0?entries.slice(0,30).reduce((s,e)=>s+(e.buffer||0),0)/Math.min(entries.length,30):0;
+  const maxRef  =Math.max(allTime,1000);
+  document.getElementById(p+"bufAmt").textContent  =fmt(allTime);
+  document.getElementById(p+"bufAll").textContent  =fmt(allTime);
+  document.getElementById(p+"bufMonth").textContent=fmt(monthBuf);
+  document.getElementById(p+"bufBar").style.width  =Math.min((allTime/maxRef)*100,100)+"%";
+  document.getElementById(p+"bufDays").textContent =entries.length===0
+    ?"Start logging to track buffer savings"
+    :`${entries.length} day${entries.length>1?"s":""} tracked • Avg ₨${Math.round(avgDaily).toLocaleString("en-PK")}/day saved`;
+}
+
+function renderAll(){
+  document.getElementById("todayLabel").textContent=dayLabel(todayStr());
+  renderBuffer(1); renderBuffer(2);
+  onDateChange(1); onDateChange(2);
+}
+
+function updatePreview(shop){
+  const p="s"+shop;
+  const val=parseFloat(document.getElementById(p+"sales").value);
+  const box=document.getElementById(p+"preview");
+  if(!val||val<=0){box.style.display="none";return;}
+  box.style.display="block";
+  document.getElementById(p+"breakdown").style.display="none";
+  document.getElementById(p+"previewRows").innerHTML=SPLITS.map(s=>`
+    <div class="split-row">
+      <div class="split-dot" style="background:${s.color}18;border:1px solid ${s.color}44">
+        <div class="split-inner" style="background:${s.color}"></div>
+      </div>
+      <div class="split-info">
+        <div class="split-top">
+          <span class="split-name">${s.label} <span class="split-pct-tag">(${Math.round(s.pct*100)}%)</span></span>
+          <span class="split-amt" style="color:${s.color}">${fmt(val*s.pct)}</span>
+        </div>
+        <div class="mini-bar-bg"><div class="mini-bar" style="background:${s.color};width:${Math.round(s.pct*100)}%"></div></div>
+      </div>
+    </div>`).join("");
+}
+
+function saveEntry(shop){
+  const p="s"+shop;
+  const sales=parseFloat(document.getElementById(p+"sales").value);
+  if(!sales||sales<=0) return;
+  const date=document.getElementById(p+"date").value||todayStr();
+  const note=document.getElementById(p+"note").value;
+  const entry={date,sales,note};
+  SPLITS.forEach(s=>{entry[s.key]=sales*s.pct;});
+  data[shop]=data[shop].filter(e=>e.date!==date).concat(entry).sort((a,b)=>b.date.localeCompare(a.date));
+  saveLs(shop===1?"rb-entries":"ts-entries",data[shop]);
+  document.getElementById(p+"sales").value="";
+  document.getElementById(p+"note").value="";
+  document.getElementById(p+"preview").style.display="none";
+  const btn=document.getElementById(p+"saveBtn");
+  btn.textContent="✅ Saved!";
+  setTimeout(()=>{btn.textContent="Save "+NAMES[shop]+" Entry";},2000);
+  renderBuffer(shop);
+  onDateChange(shop);
+}
+
+function deleteEntry(shop,date){
+  data[shop]=data[shop].filter(e=>e.date!==date);
+  saveLs(shop===1?"rb-entries":"ts-entries",data[shop]);
+  renderBuffer(shop);
+  onDateChange(shop);
+  renderHistory(shop);
+}
+
+function renderHistory(shop){
+  const p="s"+shop;
+  const entries=data[shop];
+  const bufTotal=entries.reduce((s,e)=>s+(e.buffer||0),0);
+  const avgSales=entries.length>0?entries.slice(0,7).reduce((s,e)=>s+e.sales,0)/Math.min(entries.length,7):0;
+  document.getElementById(p+"summaryGrid").innerHTML=[
+    {label:"Total Sales",val:fmt(entries.reduce((s,e)=>s+e.sales,0)),color:"#60a5fa"},
+    {label:"Buffer Saved",val:fmt(bufTotal),color:"#34d399"},
+    {label:"Avg/Day",val:fmt(avgSales),color:"#f59e0b"},
+  ].map(i=>`<div class="summary-card"><div class="summary-lbl">${i.label}</div><div class="summary-val" style="color:${i.color}">${i.val}</div></div>`).join("");
+  if(entries.length===0){
+    document.getElementById(p+"historyList").innerHTML=`<div class="empty">📭<br>No entries yet.</div>`;
+    return;
+  }
+  document.getElementById(p+"historyList").innerHTML=entries.map(e=>`
+    <div class="h-card${e.date===todayStr()?" today":""}">
+      <div class="h-head">
+        <div>
+          <div class="h-date">${dayLabel(e.date)}${e.date===todayStr()?'<span class="h-today"> • Today</span>':''}</div>
+          <div class="h-sales">${fmt(e.sales)}</div>
+          ${e.note?`<div class="h-note">${e.note}</div>`:""}
+        </div>
+        <button class="btn-del" onclick="deleteEntry(${shop},'${e.date}')">✕</button>
+      </div>
+      <div class="chips">${SPLITS.map(s=>`<div class="chip" style="background:${s.color}18;border:1px solid ${s.color}33;color:${s.color}">${s.label}: ${fmt(e[s.key])}</div>`).join("")}</div>
+    </div>`).join("");
+}
+
+initDates();
+renderAll();
+</script>
+</body>
+</html>
