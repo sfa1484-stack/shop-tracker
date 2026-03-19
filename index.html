@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Shop Tracker"/>
+<meta name="theme-color" content="#16a34a"/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="./icon-192.png"/>
+<title>My Shop Tracker</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f2027 100%);font-family:Georgia,serif;color:#f1f5f9;padding-bottom:80px;overscroll-behavior:none}
+  input,select{outline:none}
+
+  .header{background:linear-gradient(90deg,#16a34a,#15803d);padding:18px 20px 14px;padding-top:calc(18px + env(safe-area-inset-top));box-shadow:0 4px 24px rgba(22,163,74,0.3)}
+  .header-inner{max-width:520px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start}
+  .header-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:.8;margin-bottom:3px}
+  .header-title{font-size:22px;font-weight:bold;letter-spacing:1px}
+  .header-date{text-align:right;font-size:12px;font-weight:bold}
+  .header-date-sub{font-size:10px;opacity:.7;margin-bottom:2px}
+  .wrap{max-width:520px;margin:0 auto;padding:0 14px}
+
+  .shop-tabs{display:flex;gap:10px;margin-top:18px}
+  .shop-tab{flex:1;padding:12px 0;border-radius:12px;border:2px solid transparent;cursor:pointer;font-family:Georgia,serif;font-size:13px;font-weight:bold;text-align:center;transition:all .2s;user-select:none}
+  .s1-active{background:rgba(37,99,235,.2);border-color:#2563eb;color:#60a5fa}
+  .s1-inactive{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#64748b}
+  .s2-active{background:rgba(217,119,6,.2);border-color:#d97706;color:#fbbf24}
+  .s2-inactive{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#64748b}
+
+  .buf-card-1{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.3);border-radius:14px;padding:14px 16px;margin-top:14px}
+  .buf-card-2{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.3);border-radius:14px;padding:14px 16px;margin-top:14px}
+  .buf-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+  .buf-title-1{color:#60a5fa} .buf-title-2{color:#fbbf24}
+  .buf-amount-1{font-size:26px;font-weight:bold;color:#93c5fd;margin-bottom:2px}
+  .buf-amount-2{font-size:26px;font-weight:bold;color:#fcd34d;margin-bottom:2px}
+  .buf-sub{font-size:11px;color:#94a3b8;margin-bottom:10px}
+  .bar-bg{background:rgba(255,255,255,.1);border-radius:99px;height:6px}
+  .bar-1{background:linear-gradient(90deg,#1d4ed8,#60a5fa);border-radius:99px;height:6px;transition:width .6s}
+  .bar-2{background:linear-gradient(90deg,#b45309,#fbbf24);border-radius:99px;height:6px;transition:width .6s}
+  .buf-stats{display:flex;gap:16px;margin-top:8px}
+  .buf-stat{font-size:11px;color:#94a3b8}
+  .buf-stat span{font-weight:bold;color:#f1f5f9}
+
+  .exp-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .exp-card{border-radius:14px;padding:14px 16px}
+  .exp-card-shop{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.3)}
+  .exp-card-home{background:rgba(147,51,234,.08);border:1px solid rgba(147,51,234,.3)}
+  .exp-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+  .exp-title-shop{color:#fbbf24}
+  .exp-title-home{color:#c084fc}
+  .exp-amount-shop{font-size:20px;font-weight:bold;color:#fcd34d;margin-bottom:2px}
+  .exp-amount-home{font-size:20px;font-weight:bold;color:#d8b4fe;margin-bottom:2px}
+  .exp-sub{font-size:10px;color:#94a3b8;margin-bottom:8px}
+  .bar-shop{background:linear-gradient(90deg,#b45309,#fbbf24);border-radius:99px;height:5px;transition:width .6s}
+  .bar-home{background:linear-gradient(90deg,#7e22ce,#c084fc);border-radius:99px;height:5px;transition:width .6s}
+  .exp-stats{display:flex;gap:10px;margin-top:6px}
+  .exp-stat{font-size:10px;color:#94a3b8}
+  .exp-stat span{font-weight:bold;color:#f1f5f9}
+
+  .inner-tabs{display:flex;background:rgba(255,255,255,.05);border-radius:10px;padding:3px;margin-top:14px}
+  .inner-tab{flex:1;padding:8px 0;border-radius:8px;border:none;cursor:pointer;font-family:Georgia,serif;font-size:12px;transition:all .2s}
+  .inner-tab.on{background:rgba(255,255,255,.12);color:#fff;font-weight:bold}
+  .inner-tab.off{background:transparent;color:#64748b}
+
+  .box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-top:12px}
+  .box-green{background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.3)}
+  .box-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8;margin-bottom:10px}
+  .box-lbl-green{color:#4ade80}
+
+  .date-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 12px;cursor:pointer}
+  .date-val{flex:1;font-size:14px;color:#f1f5f9;font-family:Georgia,serif}
+  .date-arrow{color:#94a3b8;font-size:12px}
+
+  .input-row{display:flex;gap:8px;margin-bottom:10px}
+  .inp-wrap{flex:1;position:relative}
+  .inp-pfx{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px}
+  .inp{width:100%;padding:12px 10px 12px 26px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;font-family:Georgia,serif;font-size:16px}
+  .inp-note{flex:1;padding:12px 10px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;font-family:Georgia,serif;font-size:12px}
+  .btn-save{width:100%;padding:13px 0;border-radius:10px;border:none;color:#fff;font-family:Georgia,serif;font-size:14px;font-weight:bold;cursor:pointer;transition:all .3s}
+  .btn-s1{background:linear-gradient(90deg,#1d4ed8,#2563eb);box-shadow:0 4px 14px rgba(37,99,235,.3)}
+  .btn-s2{background:linear-gradient(90deg,#b45309,#d97706);box-shadow:0 4px 14px rgba(217,119,6,.3)}
+
+  .split-preview{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-top:12px}
+  .split-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-bottom:12px}
+  .split-row{display:flex;align-items:center;margin-bottom:10px}
+  .split-dot{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0}
+  .split-inner{width:9px;height:9px;border-radius:50%}
+  .split-info{flex:1}
+  .split-top{display:flex;justify-content:space-between;margin-bottom:3px}
+  .split-name{font-size:12px;color:#e2e8f0}
+  .split-ptag{color:#64748b;font-size:10px}
+  .split-amt{font-size:13px;font-weight:bold}
+  .mbar-bg{background:rgba(255,255,255,.07);border-radius:99px;height:3px}
+  .mbar{border-radius:99px;height:3px;opacity:.8}
+
+  .bd-sales{font-size:20px;font-weight:bold;margin-bottom:12px}
+  .bd-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .bd-lbl{color:#94a3b8;font-size:12px}
+
+  .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .sum-card{background:rgba(255,255,255,.05);border-radius:10px;padding:9px 11px;border:1px solid rgba(255,255,255,.07)}
+  .sum-lbl{font-size:9px;color:#64748b;margin-bottom:3px;text-transform:uppercase;letter-spacing:1px}
+  .sum-val{font-size:13px;font-weight:bold}
+  .hcard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;margin-bottom:9px}
+  .hcard.tod{border-color:rgba(22,163,74,.4)}
+  .hhead{display:flex;justify-content:space-between;align-items:flex-start}
+  .hdate{font-size:11px;color:#64748b;margin-bottom:2px}
+  .htod{color:#4ade80;font-size:10px}
+  .hsales{font-size:18px;font-weight:bold}
+  .hnote{font-size:10px;color:#94a3b8;margin-top:2px}
+  .btn-del{background:rgba(239,68,68,.15);border:none;border-radius:7px;color:#f87171;font-size:10px;padding:3px 7px;cursor:pointer}
+  .chips{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+  .chip{border-radius:7px;padding:2px 7px;font-size:10px}
+  .empty{text-align:center;padding:36px;color:#64748b;font-size:13px}
+
+  /* Modal */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:flex-end;justify-content:center}
+  .overlay.open{display:flex}
+  .mbox{background:#1e293b;border:1px solid rgba(255,255,255,.15);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:520px}
+  .mtitle{font-size:13px;font-weight:bold;color:#f1f5f9;margin-bottom:14px;text-align:center}
+  .mtoday{width:100%;padding:10px;border-radius:10px;border:none;background:rgba(22,163,74,.15);color:#4ade80;font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-bottom:12px}
+  .mselects{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:16px}
+  .msel-wrap{display:flex;flex-direction:column;gap:4px}
+  .msel-lbl{font-size:10px;color:#64748b;text-align:center}
+  .msel{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#f1f5f9;font-family:Georgia,serif;font-size:13px;padding:10px 8px;width:100%;text-align:center}
+  .msel option{background:#1e293b}
+  .mbtns{display:flex;gap:8px}
+  .mbtn-cancel{flex:1;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,.08);color:#94a3b8;font-family:Georgia,serif;font-size:14px;cursor:pointer}
+  .mbtn-ok{flex:2;padding:12px;border-radius:10px;border:none;background:#16a34a;color:#fff;font-family:Georgia,serif;font-size:14px;font-weight:bold;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-label">Daily Tracker</div>
+      <div class="header-title">My Shops 🏪</div>
+    </div>
+    <div class="header-date">
+      <div class="header-date-sub">Today</div>
+      <div id="hdrDate"></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="shop-tabs">
+    <div class="shop-tab s1-active" id="btn1" onclick="selectShop(1)">🏪 Rashan Bazar</div>
+    <div class="shop-tab s2-inactive" id="btn2" onclick="selectShop(2)">🏪 Top Store</div>
+  </div>
+
+  <!-- RASHAN BAZAR -->
+  <div id="pane1">
+    <div class="buf-card-1">
+      <div class="buf-title buf-title-1">Buffer Savings — Rashan Bazar</div>
+      <div class="buf-amount-1" id="b1amt">₨ 0</div>
+      <div class="buf-sub" id="b1sub">No entries yet</div>
+      <div class="bar-bg"><div class="bar-1" id="b1bar" style="width:0%"></div></div>
+      <div class="buf-stats">
+        <div class="buf-stat">This Month: <span id="b1month">₨ 0</span></div>
+        <div class="buf-stat">All Time: <span id="b1all">₨ 0</span></div>
+      </div>
+    </div>
+    <div class="exp-cards">
+      <div class="exp-card exp-card-shop">
+        <div class="exp-title exp-title-shop">Shop Expense</div>
+        <div class="exp-amount-shop" id="se1amt">₨ 0</div>
+        <div class="exp-sub" id="se1sub">No entries yet</div>
+        <div class="bar-bg"><div class="bar-shop" id="se1bar" style="width:0%"></div></div>
+        <div class="exp-stats">
+          <div class="exp-stat">Month: <span id="se1month">₨ 0</span></div>
+        </div>
+      </div>
+      <div class="exp-card exp-card-home">
+        <div class="exp-title exp-title-home">Home Expense</div>
+        <div class="exp-amount-home" id="he1amt">₨ 0</div>
+        <div class="exp-sub" id="he1sub">No entries yet</div>
+        <div class="bar-bg"><div class="bar-home" id="he1bar" style="width:0%"></div></div>
+        <div class="exp-stats">
+          <div class="exp-stat">Month: <span id="he1month">₨ 0</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="inner-tabs">
+      <button class="inner-tab on" id="t1log" onclick="innerTab(1,'log')">📊 Log Sales</button>
+      <button class="inner-tab off" id="t1hist" onclick="innerTab(1,'hist')">📅 History</button>
+    </div>
+    <div id="p1log">
+      <div class="box">
+        <div class="box-lbl" id="lbl1">Select Date & Enter Sales</div>
+        <div class="date-row" onclick="openModal(1)">
+          <span>📅</span>
+          <span class="date-val" id="dval1">-</span>
+          <span class="date-arrow">▼</span>
+        </div>
+        <div class="input-row">
+          <div class="inp-wrap">
+            <span class="inp-pfx">₨</span>
+            <input class="inp" type="number" inputmode="numeric" id="sal1" placeholder="Total sales" oninput="preview(1)"/>
+          </div>
+          <input class="inp-note" type="text" id="note1" placeholder="Note (optional)"/>
+        </div>
+        <button class="btn-save btn-s1" id="sbtn1" onclick="saveEntry(1)">Save Rashan Bazar Entry</button>
+      </div>
+      <div class="split-preview" id="prev1" style="display:none">
+        <div class="split-lbl">Auto Split Preview</div>
+        <div id="prevRows1"></div>
+      </div>
+      <div class="box box-green" id="bd1" style="display:none">
+        <div class="box-lbl box-lbl-green" id="bdlbl1">Breakdown</div>
+        <div class="bd-sales" id="bdsales1"></div>
+        <div id="bdrows1"></div>
+      </div>
+    </div>
+    <div id="p1hist" style="display:none;margin-top:12px">
+      <div class="sum-grid" id="sg1"></div>
+      <div id="hl1"></div>
+    </div>
+  </div>
+
+  <!-- TOP STORE -->
+  <div id="pane2" style="display:none">
+    <div class="buf-card-2">
+      <div class="buf-title buf-title-2">Buffer Savings — Top Store</div>
+      <div class="buf-amount-2" id="b2amt">₨ 0</div>
+      <div class="buf-sub" id="b2sub">No entries yet</div>
+      <div class="bar-bg"><div class="bar-2" id="b2bar" style="width:0%"></div></div>
+      <div class="buf-stats">
+        <div class="buf-stat">This Month: <span id="b2month">₨ 0</span></div>
+        <div class="buf-stat">All Time: <span id="b2all">₨ 0</span></div>
+      </div>
+    </div>
+    <div class="exp-cards">
+      <div class="exp-card exp-card-shop">
+        <div class="exp-title exp-title-shop">Shop Expense</div>
+        <div class="exp-amount-shop" id="se2amt">₨ 0</div>
+        <div class="exp-sub" id="se2sub">No entries yet</div>
+        <div class="bar-bg"><div class="bar-shop" id="se2bar" style="width:0%"></div></div>
+        <div class="exp-stats">
+          <div class="exp-stat">Month: <span id="se2month">₨ 0</span></div>
+        </div>
+      </div>
+      <div class="exp-card exp-card-home">
+        <div class="exp-title exp-title-home">Home Expense</div>
+        <div class="exp-amount-home" id="he2amt">₨ 0</div>
+        <div class="exp-sub" id="he2sub">No entries yet</div>
+        <div class="bar-bg"><div class="bar-home" id="he2bar" style="width:0%"></div></div>
+        <div class="exp-stats">
+          <div class="exp-stat">Month: <span id="he2month">₨ 0</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="inner-tabs">
+      <button class="inner-tab on" id="t2log" onclick="innerTab(2,'log')">📊 Log Sales</button>
+      <button class="inner-tab off" id="t2hist" onclick="innerTab(2,'hist')">📅 History</button>
+    </div>
+    <div id="p2log">
+      <div class="box">
+        <div class="box-lbl" id="lbl2">Select Date & Enter Sales</div>
+        <div class="date-row" onclick="openModal(2)">
+          <span>📅</span>
+          <span class="date-val" id="dval2">-</span>
+          <span class="date-arrow">▼</span>
+        </div>
+        <div class="input-row">
+          <div class="inp-wrap">
+            <span class="inp-pfx">₨</span>
+            <input class="inp" type="number" inputmode="numeric" id="sal2" placeholder="Total sales" oninput="preview(2)"/>
+          </div>
+          <input class="inp-note" type="text" id="note2" placeholder="Note (optional)"/>
+        </div>
+        <button class="btn-save btn-s2" id="sbtn2" onclick="saveEntry(2)">Save Top Store Entry</button>
+      </div>
+      <div class="split-preview" id="prev2" style="display:none">
+        <div class="split-lbl">Auto Split Preview</div>
+        <div id="prevRows2"></div>
+      </div>
+      <div class="box box-green" id="bd2" style="display:none">
+        <div class="box-lbl box-lbl-green" id="bdlbl2">Breakdown</div>
+        <div class="bd-sales" id="bdsales2"></div>
+        <div id="bdrows2"></div>
+      </div>
+    </div>
+    <div id="p2hist" style="display:none;margin-top:12px">
+      <div class="sum-grid" id="sg2"></div>
+      <div id="hl2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DATE MODAL -->
+<div class="overlay" id="modal">
+  <div class="mbox">
+    <div class="mtitle">📅 Select Date</div>
+    <button class="mtoday" onclick="modalToday()">📌 Set to Today</button>
+    <div class="mselects">
+      <div class="msel-wrap">
+        <div class="msel-lbl">Month</div>
+        <select class="msel" id="mMonth"></select>
+      </div>
+      <div class="msel-wrap">
+        <div class="msel-lbl">Day</div>
+        <select class="msel" id="mDay"></select>
+      </div>
+      <div class="msel-wrap">
+        <div class="msel-lbl">Year</div>
+        <select class="msel" id="mYear"></select>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="mbtn-ok" onclick="confirmModal()">Confirm ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── PWA ──────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ── Constants ─────────────────────────────────────────────
+const SPLITS=[
+  {key:"stock",    label:"Stock",          pct:.87, color:"#2563eb"},
+  {key:"expenses", label:"Shop Expense",   pct:.05, color:"#d97706"},
+  {key:"personal", label:"Home Expense",   pct:.05, color:"#9333ea"},
+  {key:"buffer",   label:"Buffer Savings", pct:.03, color:"#16a34a"},
+];
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const KEYS={1:"rb-entries", 2:"ts-entries"};
+const NAMES={1:"Rashan Bazar", 2:"Top Store"};
+
+// ── Helpers ───────────────────────────────────────────────
+function fmt(n){return "₨ "+Math.round(n).toLocaleString("en-PK")}
+function todayStr(){return new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Karachi"})}
+function thisMonth(){return todayStr().slice(0,7)}
+function dayLabel(d){
+  try{return new Date(d+"T00:00:00").toLocaleDateString("en-PK",{day:"numeric",month:"short",weekday:"short"})}
+  catch{return d}
+}
+function lsGet(k){
+  try{const v=localStorage.getItem(k); return v?JSON.parse(v):[];}
+  catch{return [];}
+}
+function lsSet(k,v){
+  try{localStorage.setItem(k,JSON.stringify(v));}
+  catch(e){console.error("Save failed",e);}
+}
+
+// ── State ─────────────────────────────────────────────────
+const selDate={1:todayStr(), 2:todayStr()};
+let modalShop=1;
+
+// ── Data access — always read fresh from localStorage ─────
+function getEntries(shop){return lsGet(KEYS[shop]);}
+function setEntries(shop,arr){
+  arr.sort((a,b)=>b.date.localeCompare(a.date));
+  lsSet(KEYS[shop],arr);
+}
+
+// ── UI: Shop selector ─────────────────────────────────────
+function selectShop(n){
+  document.getElementById("pane1").style.display=n===1?"block":"none";
+  document.getElementById("pane2").style.display=n===2?"block":"none";
+  document.getElementById("btn1").className="shop-tab "+(n===1?"s1-active":"s1-inactive");
+  document.getElementById("btn2").className="shop-tab "+(n===2?"s2-active":"s2-inactive");
+}
+
+// ── UI: Inner tabs ────────────────────────────────────────
+function innerTab(shop,tab){
+  document.getElementById("p"+shop+"log").style.display  =tab==="log" ?"block":"none";
+  document.getElementById("p"+shop+"hist").style.display =tab==="hist"?"block":"none";
+  document.getElementById("t"+shop+"log").className ="inner-tab "+(tab==="log" ?"on":"off");
+  document.getElementById("t"+shop+"hist").className="inner-tab "+(tab==="hist"?"on":"off");
+  if(tab==="hist") renderHistory(shop);
+}
+
+// ── Buffer meter ──────────────────────────────────────────
+function renderBuffer(shop){
+  const entries=getEntries(shop);
+  const allTime =entries.reduce((s,e)=>s+(e.buffer||0),0);
+  const monthly =entries.filter(e=>e.date.startsWith(thisMonth())).reduce((s,e)=>s+(e.buffer||0),0);
+  const avg     =entries.length>0?entries.slice(0,30).reduce((s,e)=>s+(e.buffer||0),0)/Math.min(entries.length,30):0;
+  const pct     =Math.min((allTime/Math.max(allTime,1000))*100,100);
+  const days    =entries.length;
+
+  document.getElementById("b"+shop+"amt").textContent  =fmt(allTime);
+  document.getElementById("b"+shop+"all").textContent  =fmt(allTime);
+  document.getElementById("b"+shop+"month").textContent=fmt(monthly);
+  document.getElementById("b"+shop+"bar").style.width  =pct+"%";
+  document.getElementById("b"+shop+"sub").textContent  =days===0
+    ?"Start logging to track buffer savings"
+    :`${days} day${days>1?"s":""} tracked • Avg ₨${Math.round(avg).toLocaleString("en-PK")}/day`;
+}
+
+// ── Log pane ──────────────────────────────────────────────
+function refreshLogPane(shop){
+  const date=selDate[shop];
+  const entry=getEntries(shop).find(e=>e.date===date);
+  const hasSalesInput=!!document.getElementById("sal"+shop).value;
+
+  document.getElementById("dval"+shop).textContent=dayLabel(date);
+  document.getElementById("lbl"+shop).textContent=entry?"✅ Entry exists — Update?":"Select Date & Enter Sales";
+
+  if(entry && !hasSalesInput){
+    document.getElementById("bd"+shop).style.display="block";
+    document.getElementById("bdlbl"+shop).textContent="Breakdown — "+dayLabel(date);
+    document.getElementById("bdsales"+shop).innerHTML=fmt(entry.sales)+' <span style="font-size:11px;color:#94a3b8">total sales</span>';
+    document.getElementById("bdrows"+shop).innerHTML=SPLITS.map(s=>`
+      <div class="bd-row">
+        <span class="bd-lbl">${s.label} (${Math.round(s.pct*100)}%)</span>
+        <span style="color:${s.color};font-weight:bold;font-size:13px">${fmt(entry[s.key])}</span>
+      </div>`).join("");
+  } else if(!hasSalesInput){
+    document.getElementById("bd"+shop).style.display="none";
+  }
+}
+
+// ── Preview ───────────────────────────────────────────────
+function preview(shop){
+  const val=parseFloat(document.getElementById("sal"+shop).value);
+  const box=document.getElementById("prev"+shop);
+  if(!val||val<=0){box.style.display="none"; return;}
+  box.style.display="block";
+  document.getElementById("bd"+shop).style.display="none";
+  document.getElementById("prevRows"+shop).innerHTML=SPLITS.map(s=>`
+    <div class="split-row">
+      <div class="split-dot" style="background:${s.color}18;border:1px solid ${s.color}44">
+        <div class="split-inner" style="background:${s.color}"></div>
+      </div>
+      <div class="split-info">
+        <div class="split-top">
+          <span class="split-name">${s.label} <span class="split-ptag">(${Math.round(s.pct*100)}%)</span></span>
+          <span class="split-amt" style="color:${s.color}">${fmt(val*s.pct)}</span>
+        </div>
+        <div class="mbar-bg"><div class="mbar" style="background:${s.color};width:${Math.round(s.pct*100)}%"></div></div>
+      </div>
+    </div>`).join("");
+}
+
+// ── Save ──────────────────────────────────────────────────
+function saveEntry(shop){
+  const sales=parseFloat(document.getElementById("sal"+shop).value);
+  if(!sales||sales<=0){alert("Please enter a valid sales amount");return;}
+  const note =document.getElementById("note"+shop).value;
+  const date =selDate[shop];
+  const entry={date,sales,note};
+  SPLITS.forEach(s=>{entry[s.key]=+(sales*s.pct).toFixed(2);});
+
+  const arr=getEntries(shop).filter(e=>e.date!==date);
+  arr.push(entry);
+  setEntries(shop,arr);
+
+  // Verify it saved
+  const check=getEntries(shop).find(e=>e.date===date);
+  if(!check){alert("Save failed! Please try again.");return;}
+
+  document.getElementById("sal"+shop).value="";
+  document.getElementById("note"+shop).value="";
+  document.getElementById("prev"+shop).style.display="none";
+
+  const btn=document.getElementById("sbtn"+shop);
+  btn.textContent="✅ Saved!";
+  setTimeout(()=>{btn.textContent="Save "+NAMES[shop]+" Entry";},2000);
+
+  renderBuffer(shop); renderExpenses(shop);
+  refreshLogPane(shop);
+}
+
+// ── Delete ────────────────────────────────────────────────
+function delEntry(shop,date){
+  const arr=getEntries(shop).filter(e=>e.date!==date);
+  setEntries(shop,arr);
+  renderBuffer(shop); renderExpenses(shop);
+  refreshLogPane(shop);
+  renderHistory(shop);
+}
+
+// ── Expense Meters ───────────────────────────────────────
+function renderExpenses(shop){
+  const entries=getEntries(shop);
+  const seAll  =entries.reduce((s,e)=>s+(e.expenses||0),0);
+  const heAll  =entries.reduce((s,e)=>s+(e.personal||0),0);
+  const seMonth=entries.filter(e=>e.date.startsWith(thisMonth())).reduce((s,e)=>s+(e.expenses||0),0);
+  const heMonth=entries.filter(e=>e.date.startsWith(thisMonth())).reduce((s,e)=>s+(e.personal||0),0);
+  const days   =entries.length;
+  const seAvg  =days>0?entries.slice(0,30).reduce((s,e)=>s+(e.expenses||0),0)/Math.min(days,30):0;
+  const heAvg  =days>0?entries.slice(0,30).reduce((s,e)=>s+(e.personal||0),0)/Math.min(days,30):0;
+  const sePct  =Math.min((seAll/Math.max(seAll,1000))*100,100);
+  const hePct  =Math.min((heAll/Math.max(heAll,1000))*100,100);
+
+  document.getElementById("se"+shop+"amt").textContent  =fmt(seAll);
+  document.getElementById("se"+shop+"month").textContent=fmt(seMonth);
+  document.getElementById("se"+shop+"bar").style.width  =sePct+"%";
+  document.getElementById("se"+shop+"sub").textContent  =days===0?"No entries yet":`Avg ₨${Math.round(seAvg).toLocaleString("en-PK")}/day`;
+
+  document.getElementById("he"+shop+"amt").textContent  =fmt(heAll);
+  document.getElementById("he"+shop+"month").textContent=fmt(heMonth);
+  document.getElementById("he"+shop+"bar").style.width  =hePct+"%";
+  document.getElementById("he"+shop+"sub").textContent  =days===0?"No entries yet":`Avg ₨${Math.round(heAvg).toLocaleString("en-PK")}/day`;
+}
+
+// ── History ───────────────────────────────────────────────
+function renderHistory(shop){
+  const entries=getEntries(shop);
+  const bufTotal=entries.reduce((s,e)=>s+(e.buffer||0),0);
+  const avgSales=entries.length>0?entries.slice(0,7).reduce((s,e)=>s+e.sales,0)/Math.min(entries.length,7):0;
+
+  document.getElementById("sg"+shop).innerHTML=[
+    {label:"Total Sales", val:fmt(entries.reduce((s,e)=>s+e.sales,0)), color:"#60a5fa"},
+    {label:"Buffer Saved", val:fmt(bufTotal), color:"#34d399"},
+    {label:"Avg/Day", val:fmt(avgSales), color:"#f59e0b"},
+  ].map(i=>`<div class="sum-card"><div class="sum-lbl">${i.label}</div><div class="sum-val" style="color:${i.color}">${i.val}</div></div>`).join("");
+
+  if(entries.length===0){
+    document.getElementById("hl"+shop).innerHTML=`<div class="empty">📭<br>No entries yet.</div>`;
+    return;
+  }
+  const tod=todayStr();
+  document.getElementById("hl"+shop).innerHTML=entries.map(e=>`
+    <div class="hcard${e.date===tod?" tod":""}">
+      <div class="hhead">
+        <div>
+          <div class="hdate">${dayLabel(e.date)}${e.date===tod?'<span class="htod"> • Today</span>':''}</div>
+          <div class="hsales">${fmt(e.sales)}</div>
+          ${e.note?`<div class="hnote">${e.note}</div>`:""}
+        </div>
+        <button class="btn-del" onclick="delEntry(${shop},'${e.date}')">✕</button>
+      </div>
+      <div class="chips">${SPLITS.map(s=>`<div class="chip" style="background:${s.color}18;border:1px solid ${s.color}33;color:${s.color}">${s.label}: ${fmt(e[s.key])}</div>`).join("")}</div>
+    </div>`).join("");
+}
+
+// ── Date Modal ────────────────────────────────────────────
+function fillDays(yr,mo,sel){
+  const max=new Date(yr,mo,0).getDate();
+  const d=document.getElementById("mDay");
+  d.innerHTML="";
+  for(let i=1;i<=max;i++){
+    const o=document.createElement("option");
+    o.value=i; o.textContent=i;
+    if(i===sel)o.selected=true;
+    d.appendChild(o);
+  }
+}
+
+function openModal(shop){
+  modalShop=shop;
+  const parts=selDate[shop].split("-");
+  const yr=+parts[0], mo=+parts[1], dy=+parts[2];
+  const curYr=new Date().getFullYear();
+
+  const ySel=document.getElementById("mYear");
+  ySel.innerHTML="";
+  for(let y=curYr;y>=curYr-3;y--){
+    const o=document.createElement("option");
+    o.value=y;o.textContent=y;if(y===yr)o.selected=true;
+    ySel.appendChild(o);
+  }
+  const mSel=document.getElementById("mMonth");
+  mSel.innerHTML="";
+  MONTHS.forEach((m,i)=>{
+    const o=document.createElement("option");
+    o.value=i+1;o.textContent=m;if(i+1===mo)o.selected=true;
+    mSel.appendChild(o);
+  });
+  fillDays(yr,mo,dy);
+  document.getElementById("modal").classList.add("open");
+}
+
+document.getElementById("mMonth").onchange=()=>{
+  fillDays(+document.getElementById("mYear").value, +document.getElementById("mMonth").value, 1);
+};
+document.getElementById("mYear").onchange=()=>{
+  fillDays(+document.getElementById("mYear").value, +document.getElementById("mMonth").value, 1);
+};
+
+function modalToday(){
+  const t=todayStr().split("-");
+  document.getElementById("mYear").value=+t[0];
+  document.getElementById("mMonth").value=+t[1];
+  fillDays(+t[0],+t[1],+t[2]);
+}
+function closeModal(){document.getElementById("modal").classList.remove("open");}
+function confirmModal(){
+  const yr=String(document.getElementById("mYear").value);
+  const mo=String(document.getElementById("mMonth").value).padStart(2,"0");
+  const dy=String(document.getElementById("mDay").value).padStart(2,"0");
+  selDate[modalShop]=`${yr}-${mo}-${dy}`;
+  closeModal();
+  document.getElementById("sal"+modalShop).value="";
+  document.getElementById("prev"+modalShop).style.display="none";
+  refreshLogPane(modalShop);
+}
+
+// Close modal on overlay tap
+document.getElementById("modal").addEventListener("click",function(e){
+  if(e.target===this)closeModal();
+});
+
+// ── Visibility change — re-render when app comes back ─────
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"){
+    renderBuffer(1); renderBuffer(2); renderExpenses(1); renderExpenses(2);
+    refreshLogPane(1); refreshLogPane(2);
+  }
+});
+
+// ── Init ──────────────────────────────────────────────────
+document.getElementById("hdrDate").textContent=dayLabel(todayStr());
+renderBuffer(1); renderBuffer(2); renderExpenses(1); renderExpenses(2);
+refreshLogPane(1); refreshLogPane(2);
+</script>
+</body>
+</html>
